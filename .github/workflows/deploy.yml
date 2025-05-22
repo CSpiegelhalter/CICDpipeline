@@ -22,6 +22,16 @@ jobs:
         echo "Triggered by GitHub Actions bot — skipping workflow."
         exit 0
 
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies and run tests
+      run: |
+        pip install -r todo-api/requirements.txt
+        pytest todo-api
+
     - name: Set lowercase owner
       run: |
         echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
@@ -44,7 +54,6 @@ jobs:
         git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
         cd CICDpipeline/k8s-manifest
 
-        # Update image tag in deployment.yaml
         sed -i "s|image: .*|image: ${{ env.image_name }}:${{ env.TAG }}|" deployment.yaml
 
         git add deployment.yaml
@@ -54,4 +63,5 @@ jobs:
           git commit -m "Update image to ${{ env.TAG }} [skip ci]"
           git push
         fi
+
 
