@@ -18,6 +18,6 @@ spec:
     spec:
       containers:
         - name: todo-api
-          image: ghcr.io/cspiegelhalter/todo-api:87c2968faebc8b7667a23656bca0f5c9db1fc1a6
+          image: ghcr.io/cspiegelhalter/todo-api:40aad53c416cf34100684af591d6fbe7acad9324
           ports:
             - containerPort: 80
