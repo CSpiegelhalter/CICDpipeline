@@ -13,34 +13,45 @@ jobs:
       TAG: ${{ github.sha }}
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
+    - name: Checkout source code
+      uses: actions/checkout@v3
 
-      - name: Set lowercase owner
-        id: vars
-        run: |
-          echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+    - name: Stop infinite loop if commit is from GitHub Actions
+      if: github.actor == 'github-actions'
+      run: |
+        echo "Triggered by GitHub Actions bot — skipping workflow."
+        exit 0
 
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ env.owner_lc }} --password-stdin
+    - name: Set lowercase owner
+      run: |
+        echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+        echo "image_name=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/todo-api" >> $GITHUB_ENV
 
-      - name: Build Docker image
-        run: docker build -t ghcr.io/${{ env.owner_lc }}/todo-api:${{ env.TAG }} -f todo-api/Dockerfile todo-api
+    - name: Log in to GHCR
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ env.owner_lc }} --password-stdin
 
-      - name: Push Docker image
-        run: docker push ghcr.io/${{ env.owner_lc }}/todo-api:${{ env.TAG }}
+    - name: Build Docker image
+      run: docker build -t ${{ env.image_name }}:${{ env.TAG }} -f todo-api/Dockerfile todo-api
 
-      - name: Clone manifests repo (same repo in this case)
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+    - name: Push Docker image
+      run: docker push ${{ env.image_name }}:${{ env.TAG }}
 
-          git clone https://x-access-token:${{ secrets.CICD_REPO_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
-          cd CICDpipeline/k8s-manifest
+    - name: Clone manifests repo (same repo in this case)
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
 
-          # Update image tag in deployment.yaml
-          sed -i "s|image: .*|image: $IMAGE_NAME:$TAG|" deployment.yaml
+        git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
+        cd CICDpipeline/k8s-manifest
 
-          git add deployment.yaml
-          git commit -m "Update image to $TAG"
+        # Update image tag in deployment.yaml
+        sed -i "s|image: .*|image: ${{ env.image_name }}:${{ env.TAG }}|" deployment.yaml
+
+        git add deployment.yaml
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update image to ${{ env.TAG }} [skip ci]"
           git push
+        fi
+
