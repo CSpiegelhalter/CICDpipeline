@@ -1,7 +1,2 @@
-# Devloping locally
-
-1. Install `kind`
-`brew install kind`
-
-2. Create local k8 cluster
-`kind create cluster --name todo-dev`
+# Medium post
+https://medium.com/@spiegelhaltercurt/end-to-end-ci-cd-with-argocd-github-actions-and-fastapi-on-kubernetes-8fdcab6c12df
