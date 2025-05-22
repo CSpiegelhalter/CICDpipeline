@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: todo-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CSpiegelhalter/CICDpipeline
+    targetRevision: HEAD
+    path: k8s-manifest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

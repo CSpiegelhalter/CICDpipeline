@@ -1,0 +1,42 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/todo-api
+      TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME:$TAG .
+
+      - name: Push Docker image
+        run: docker push $IMAGE_NAME:$TAG
+
+      - name: Clone manifests repo (same repo in this case)
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          git clone https://x-access-token:${{ secrets.CICD_REPO_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
+          cd CICDpipeline/k8s-manifest
+
+          # Update image tag in deployment.yaml
+          sed -i "s|image: .*|image: $IMAGE_NAME:$TAG|" deployment.yaml
+
+          git add deployment.yaml
+          git commit -m "Update image to $TAG"
+          git push
