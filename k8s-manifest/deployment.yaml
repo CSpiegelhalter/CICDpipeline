@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: todo-api
-          image: :d5205b36d6c9f5c9a020046aa2d117b686211939
+          image: :87d4b09c2a40a498d6a01bb40284c741640164dc
           ports:
             - containerPort: 80
