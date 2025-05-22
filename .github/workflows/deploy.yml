@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/todo-api
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner.toLowerCase() }}/todo-api
       TAG: ${{ github.sha }}
 
     steps:
