@@ -2,3 +2,4 @@ fastapi
 uvicorn
 prometheus-client
 pytest
+httpx
