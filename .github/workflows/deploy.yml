@@ -1,32 +1,42 @@
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/todo-api
-  TAG: latest
+name: Build and Deploy
 
-steps:
-  - uses: actions/checkout@v3
+on:
+  push:
+    branches:
+      - main
 
-  - name: Log in to GHCR
-    run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
-  - name: Build Docker image
-    run: docker build -t $IMAGE_NAME:$TAG .
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/todo-api
+      TAG: ${{ github.sha }}
 
-  - name: Push Docker image
-    run: docker push $IMAGE_NAME:$TAG
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
 
-  - name: Update deployment.yaml
-    run: |
-      git config --global user.name "GitHub Actions"
-      git config --global user.email "actions@github.com"
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
-      cd CICDpipeline/k8s-manifest
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME:$TAG .
 
-      sed -i "s|image: .*|image: $IMAGE_NAME:$TAG|" deployment.yaml
-      git add deployment.yaml
-      if git diff --cached --quiet; then
-        echo "No changes to commit"
-      else
-        git commit -m "Update image to $TAG"
-        git push
-      fi
+      - name: Push Docker image
+        run: docker push $IMAGE_NAME:$TAG
+
+      - name: Clone manifests repo (same repo in this case)
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          git clone https://x-access-token:${{ secrets.CICD_REPO_TOKEN }}@github.com/CSpiegelhalter/CICDpipeline.git
+          cd CICDpipeline/k8s-manifest
+
+          # Update image tag in deployment.yaml
+          sed -i "s|image: .*|image: $IMAGE_NAME:$TAG|" deployment.yaml
+
+          git add deployment.yaml
+          git commit -m "Update image to $TAG"
+          git push
