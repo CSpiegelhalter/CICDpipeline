@@ -25,7 +25,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ env.owner_lc }} --password-stdin
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ env.owner_lc }}/todo-api:${{ env.TAG }} .
+        run: docker build -t ghcr.io/${{ env.owner_lc }}/todo-api:${{ env.TAG }} -f todo-api/Dockerfile todo-api
 
       - name: Push Docker image
         run: docker push ghcr.io/${{ env.owner_lc }}/todo-api:${{ env.TAG }}
