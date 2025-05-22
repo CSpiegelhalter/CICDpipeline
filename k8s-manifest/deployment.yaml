@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: todo-api
-          image: ghcr.io/CSpiegelhalter/todo-api:latest  # gets updated
+          image: :d5205b36d6c9f5c9a020046aa2d117b686211939
           ports:
             - containerPort: 80
