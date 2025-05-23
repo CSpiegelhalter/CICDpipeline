@@ -16,6 +16,7 @@ echo "📦 Applying manifests..."
 kubectl apply -f k8s-manifest/deployment.yaml
 kubectl apply -f k8s-manifest/service.yaml
 kubectl apply -f k8s-manifest/servicemonitor.yaml
+kubectl apply -f k8s-manifest/argocd-app.yaml
 
 echo "🚀  Starting port-forwards…"
 
